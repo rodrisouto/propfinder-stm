@@ -130,3 +130,6 @@ dmypy.json
 
 #
 sensitive.conf
+.idea
+.idea/
+.idea/*
