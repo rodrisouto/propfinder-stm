@@ -1,10 +1,11 @@
+import database as db
+
 import telegram
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler
 from telegram.ext import Filters
 import logging
-import configparser
 import pymongo
 import configparser
 import requests
@@ -12,48 +13,6 @@ from bs4 import BeautifulSoup
 from hashlib import sha1
 from urllib.parse import urlparse
 from dataclasses import dataclass
-
-# MongoDB
-#########################################
-DB_PROPFINDER = 'propfinder'
-COL_SEEN_BY_USER = 'seenByUser'
-
-config = configparser.ConfigParser()
-config.read('sensitive.conf')
-mongodb_password = config['mongodb.com']['password']
-
-client = pymongo.MongoClient('mongodb+srv://rodrisouto:' + mongodb_password + '@propfinder-stm-0uhxi.mongodb.net/test?retryWrites=true&w=majority')
-
-col = client[DB_PROPFINDER][COL_SEEN_BY_USER]
-
-def create_user(userId):
-    query = {'userId': userId}
-    update = {'$set': {'userId': userId}}
-
-    col.update_one(query, update, upsert=True)
-
-def add_seen(userId, seen):
-    query = {'userId': userId}
-    update = {'$addToSet': {'seen': {'$each': [1, 2, 3, 4]}}}
-
-    col.update_one(query, update)
-
-def add_url(userId, url):
-    query = {'userId': userId}
-    update = {'$addToSet': {'urls': url}}
-
-    col.update_one(query, update)
-
-def get_urls(userId):
-    query = {'userId': userId}
-
-    return col.find_one(query)['urls']
-
-def delete_url(userId, url):
-    query = {'userId': userId}
-    update = {'$pull': {'urls': url}}
-
-    col.update_one(query, update)
 
 # Service
 #########################################
@@ -149,46 +108,59 @@ COMMAND_DELETE_URL = 'delete_url'
 def controller_start(bot, update):
     try:
         chat_id = update.message.chat_id
-        bot.send_message(chat_id=chat_id, text='Creating your user, wait for a confirmation message')
-        create_user(chat_id)
-        bot.send_message(chat_id=chat_id, text='User successfully created!')
+        send_message(chat_id, 'Creating your user, wait for a confirmation message')
+        db.create_user(chat_id)
+        send_message(chat_id, 'User successfully created!')
     except Exception as e:
-        bot.send_message(chat_id=chat_id, text='There was an error while creating your user')
+        send_message(chat_id, 'There was an error while creating your user')
 
 def controller_add_url(bot, update):
     try:
         chat_id = update.message.chat_id
-        url = update.message.text.replace('/'+COMMAND_ADD_URL, '', 1).strip()
-        add_url(chat_id, url)
+        url = get_text_from_command(update.message.text, COMMAND_ADD_URL)
 
-        bot.send_message(chat_id=chat_id, text='Successfully added new url!')
+        if len(url) == 0:
+            return
+
+        db.add_url(chat_id, url)
+
+        send_message(chat_id, 'Successfully added new url!')
     except Exception as e:
-        bot.send_message(chat_id=chat_id, text='There was an error adding the url: ' + url)
+        send_message(chat_id, 'There was an error adding the url: ' + url)
 
 def controller_get_urls(bot, update):
     try:
         chat_id = update.message.chat_id
-        urls = get_urls(chat_id)
+        urls = db.get_urls(chat_id)
+        
+        if len(urls) == 0:
+            response = 'There are no urls for user'
+        else:
+            response = ', '.join(urls)
 
-        bot.send_message(chat_id=chat_id, text=str(', '.join(urls)))
+        send_message(chat_id, str(response))
     except Exception as e:
-        bot.send_message(chat_id=chat_id, text='There was an error getting the urls')
+        print(e)
+        send_message(chat_id, 'There was an error getting the urls')
 
 def controller_delete_url(bot, update):
     try:
         chat_id = update.message.chat_id
-        url = update.message.text.replace('/'+COMMAND_DELETE_URL, '', 1).strip()
-        delete_url(chat_id, url)
+        url = get_text_from_command(update.message.text, COMMAND_DELETE_URL)
+        db.delete_url(chat_id, url)
 
-        bot.send_message(chat_id=chat_id, text='Successfully deleted url')
+        send_message(chat_id, 'Successfully deleted url')
     except Exception as e:
-        bot.send_message(chat_id=chat_id, text='There was an error deleting the url: ' + url)
-
-def echo(bot, update):
-    update.message.reply_text(update.message.text)
+        send_message(chat_id, 'There was an error deleting the url: ' + url)
 
 def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"', update, error)
+
+def get_text_from_command(original_text, command):
+    return original_text.replace('/'+command, '', 1).strip()
+
+def send_message(chat_id, text):
+    bot.send_message(chat_id=chat_id, text=text)
 
 def main():
 
@@ -213,3 +185,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    print(db)
+    print(db.get_urls(1))
