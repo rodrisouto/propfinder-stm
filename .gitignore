@@ -133,3 +133,4 @@ sensitive.conf
 .idea
 .idea/
 .idea/*
+.idea/**
