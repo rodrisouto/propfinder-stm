@@ -61,7 +61,6 @@ def get_urls(bot, update):
             send_message(bot, chat_id, url)
 
     except Exception as e:
-        print(e)
         send_message(bot, chat_id, 'There was an error getting the urls')
 
 
@@ -82,7 +81,7 @@ def update_unseen(bot, update):
 
     try:
         urls = db.get_urls(chat_id)
-        history = db.get_history(chat_id)
+        history = list(map(lambda ad: ad['id'], db.get_history(chat_id)))
 
         if len(urls) == 0:
             send_message(bot, chat_id, 'There are no registered urls')
@@ -91,9 +90,7 @@ def update_unseen(bot, update):
         process_unseen(bot, chat_id, urls, history)
 
     except Exception as e:
-        print(type(e))
-        print(e)
-        print(traceback.format_exc())
+        # print(traceback.format_exc())
         send_message(bot, chat_id, 'There was an error updating unseen')
 
 
@@ -122,10 +119,16 @@ def send_message_2(bot, chat_id, text):
 def process_unseen(bot, chat_id, urls, history):
     seen, unseen = scrapper.scrap_for_unseen(urls, history)
 
-    send_message(bot, chat_id, 'You have already seen {}'.format(len(seen)))
+    send_message(bot, chat_id, 'You have already seen {} ads'.format(len(seen)))
+
+    if len(unseen) == 0:
+        send_message(bot, chat_id, 'There are no new ads for you')
+        return
 
     for ad in unseen:
         send_message(bot, chat_id, ad['url'])
+
+    mark_as_seen(chat_id, unseen)
 
 
 def mark_as_seen(chat_id, unseen):
