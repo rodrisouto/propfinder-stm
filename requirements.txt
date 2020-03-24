@@ -4,7 +4,6 @@ agate-dbf==0.2.0
 agate-excel==0.2.2
 agate-sql==0.5.3
 anaconda==0.0.1.1
-apturl==0.5.2
 asn1crypto==0.24.0
 astor==0.8.0
 attrs==17.4.0
