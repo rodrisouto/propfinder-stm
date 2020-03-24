@@ -1,5 +1,0 @@
-configparser
-pymongo
-pymongo[srv]
-python-telegram-bot>=10.0.2
-requests>=2.20.0

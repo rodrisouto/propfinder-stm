@@ -90,8 +90,14 @@ def update_unseen(bot, update):
         process_unseen(bot, chat_id, urls, history)
 
     except Exception as e:
-        # print(traceback.format_exc())
+        print('Error with chat_id: {}'.format(chat_id))
+        print(traceback.format_exc())
         send_message(bot, chat_id, 'There was an error updating unseen')
+
+
+def health_check(bot, update):
+    chat_id = update.message.chat_id
+    send_message(bot, chat_id, 'OK')
 
 
 def error(bot, update, error):
@@ -135,7 +141,13 @@ def mark_as_seen(chat_id, unseen):
     db.add_seen(chat_id, unseen)
 
 
+def print_ip():
+    ip = requests.get('https://api.ipify.org').text
+    print('My public IP address is:', ip)
+
+
 def main():
+    print_ip()
 
     config = configparser.ConfigParser()
     config.read('sensitive.conf')
@@ -150,6 +162,7 @@ def main():
     dp.add_handler(CommandHandler(COMMAND_GET_URLS, get_urls))
     dp.add_handler(CommandHandler(COMMAND_DELETE_URL, delete_url))
     dp.add_handler(CommandHandler('update_unseen', update_unseen))
+    dp.add_handler(CommandHandler('health_check', health_check))
     dp.add_error_handler(error)
 
     updater.start_polling()
