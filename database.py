@@ -2,7 +2,7 @@ import pymongo
 import configparser
 
 DB_PROPFINDER = 'propfinder'
-COL_SEEN_BY_USER = 'seenByUser'
+COL_SEEN_BY_USER = 'historyByUser'
 
 config = configparser.ConfigParser()
 config.read('sensitive.conf')
@@ -15,16 +15,9 @@ col = client[DB_PROPFINDER][COL_SEEN_BY_USER]
 
 def create_user(user_id):
     query = {'userId': user_id}
-    update = {'$set': {'user_id': user_id}}
+    update = {'$set': {'userId': user_id}}
 
     col.update_one(query, update, upsert=True)
-
-
-def add_seen(user_id, seen):
-    query = {'userId': user_id}
-    update = {'$addToSet': {'seen': {'$each': [1, 2, 3, 4]}}}
-
-    col.update_one(query, update)
 
 
 def add_url(user_id, url):
@@ -40,7 +33,12 @@ def get_urls(user_id):
     user = col.find_one(query)
     if user is None:
         return []
-    return user['urls']
+
+    urls = user.get('urls')
+    if urls is None:
+        return []
+
+    return urls
 
 
 def delete_url(user_id, url):
@@ -48,3 +46,24 @@ def delete_url(user_id, url):
     update = {'$pull': {'urls': url}}
 
     col.update_one(query, update)
+
+
+def add_seen(user_id, seen):
+    query = {'userId': user_id}
+    update = {'$addToSet': {'history': {'$each': seen}}}
+
+    col.update_one(query, update)
+
+
+def get_history(user_id):
+    query = {'userId': user_id}
+
+    user = col.find_one(query)
+    if user is None:
+        return []
+
+    history = user.get('history')
+    if history is None:
+        return []
+
+    return history

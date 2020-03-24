@@ -4,11 +4,13 @@ from hashlib import sha1
 from urllib.parse import urlparse
 from dataclasses import dataclass
 
+"""
 urls = {
     "https://www.argenprop.com/departamento-alquiler-barrio-palermo-orden-masnuevos",
     "https://www.argenprop.com/departamento-alquiler-barrio-san-telmo-orden-masnuevos",
     "https://www.argenprop.com/departamento-alquiler-barrio-almagro-orden-masnuevos",
 }
+"""
 
 
 @dataclass
@@ -32,18 +34,14 @@ parsers = [
 ]
 
 
-def scrap_for_unseen():
+def scrap_for_unseen(urls, history):
     for url in urls:
         res = requests.get(url)
         ads = list(extract_ads(url, res.text))
-        seen, unseen = split_seen_and_unseen(ads)
+        seen, unseen = split_seen_and_unseen(ads, history)
 
-        print("{} seen, {} unseen".format(len(seen), len(unseen)))
-
-        for u in unseen:
-            notify(u)
-
-        mark_as_seen(unseen)
+        # print("{} seen, {} unseen".format(len(seen), len(unseen)))
+        return seen, unseen
 
 
 def extract_ads(url, text):
@@ -52,33 +50,7 @@ def extract_ads(url, text):
     return parser.extract_links(text)
 
 
-def split_seen_and_unseen(ads):
-    history = get_history()
+def split_seen_and_unseen(ads, history):
     seen = [a for a in ads if a["id"] in history]
     unseen = [a for a in ads if a["id"] not in history]
     return seen, unseen
-
-
-def get_history():
-    try:
-        with open("seen.txt", "r") as f:
-            return {l.rstrip() for l in f.readlines()}
-    except:
-        return set()
-
-
-def notify(ad):
-    bot = "1018987868:AAFiau5do1kkqI6BcEk6rHDgFRuHNq2g46I"
-    room = "-493227444"
-    url = "https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}".format(bot, room, ad["url"])
-    try:
-        r = requests.get(url)
-        print(r)
-    except:
-        print('Error in request')
-
-
-def mark_as_seen(unseen):
-    with open("seen.txt", "a+") as f:
-        ids = ["{}\n".format(u["id"]) for u in unseen]
-        f.writelines(ids)
