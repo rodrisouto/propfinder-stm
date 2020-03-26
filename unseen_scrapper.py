@@ -35,13 +35,19 @@ parsers = [
 
 
 def scrap_for_unseen(urls, history):
+    total_seen = []
+    total_unseen = []
+
     for url in urls:
         res = requests.get(url)
         ads = list(extract_ads(url, res.text))
         seen, unseen = split_seen_and_unseen(ads, history)
 
         # print("{} seen, {} unseen".format(len(seen), len(unseen)))
-        return seen, unseen
+        total_seen = total_seen + seen
+        total_unseen = total_unseen + unseen
+
+    return total_seen, total_unseen
 
 
 def extract_ads(url, text):

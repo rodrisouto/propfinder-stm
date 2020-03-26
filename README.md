@@ -5,6 +5,9 @@ mongo "mongodb+srv://propfinder-stm-0uhxi.mongodb.net/test" --username rodrisout
 heroku git:remote -a propfinder-stm
 git push heroku master 
 
+after clock
+heroku ps:scale clock=1
+
 
 To handle sensitive information I created a new branch called `secret` and didn't push it to my origin repository.
 In that branch I did replace the values of `sensitive.conf.template` and changed the name to 'sensitive.conf'. 

@@ -1,0 +1,5 @@
+help - How it works
+geturls - Get current urls
+addurl - Add new url
+deleteurl - Delete url (if does not exists, nothing happens)
+updateunseen - Fetches all prop ads from your urls and returns those you haven't seen
