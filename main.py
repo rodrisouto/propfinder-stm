@@ -35,6 +35,8 @@ START_TEXT = """
     /addurl <url> - Add new url
     /deleteurl <url> - Delete url (if does not exists, nothing happens)
     /updateunseen - Fetches all prop ads from your urls and returns those you haven't seen
+    /vippify - Subscribe to receive updates each 20 minutes
+    /unvippify - Unsubscribe
 """
 
 
@@ -43,8 +45,14 @@ def start(bot, update):
 
     try:
         send_message(bot, chat_id, START_TEXT)
+
+        username = get_username(update.message.chat)
+        db.create_user(chat_id, username)
+
     except Exception as e:
-        send_message(bot, chat_id, 'There was an error while creating your user')
+        print('Error with chat_id: {}'.format(chat_id))
+        print(traceback.format_exc())
+        send_message(bot, chat_id, 'There was a server error')
 
 
 def create_user(bot, update):
@@ -65,6 +73,10 @@ def add_url(bot, update):
 
     try:
         url = get_text_from_command(update.message.text, COMMAND_ADD_URL)
+
+        if not scrapper.is_valid_url(url):
+            send_message(bot, chat_id, 'Not a valid url. Use /help to see valid domains. Remember to add http or https')
+            return
 
         if len(url) == 0:
             send_message(bot, chat_id, 'Cannot add empty url :(')
@@ -104,7 +116,9 @@ def delete_url(bot, update):
 
     try:
         url = get_text_from_command(update.message.text, COMMAND_DELETE_URL)
-        db.delete_url(chat_id, url)
+
+        username = get_username(update.message.chat)
+        db.delete_url(chat_id, username, url)
 
         send_message(bot, chat_id, 'Successfully deleted url')
     except Exception as e:

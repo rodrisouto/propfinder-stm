@@ -1,5 +1,6 @@
 import pymongo
 import configparser
+from datetime import datetime
 
 DB_PROPFINDER = 'propfinder'
 
@@ -15,16 +16,16 @@ client = pymongo.MongoClient('mongodb+srv://rodrisouto:' + mongodb_password + '@
 col_history = client[DB_PROPFINDER][COL_SEEN_BY_USER]
 
 
-def create_user(user_id):
+def create_user(user_id, username):
     query = {'userId': user_id}
-    update = {'$set': {'userId': user_id}}
+    update = {'$set': {'userId': user_id, 'userName': username, 'lastUpdate': datetime.utcnow()}}
 
     col_history.update_one(query, update, upsert=True)
 
 
 def add_url(user_id, username, url):
     query = {'userId': user_id}
-    update = {'$set': {'userName': username}, '$addToSet': {'urls': url}}
+    update = {'$set': {'userName': username, 'lastUpdate': datetime.utcnow()}, '$addToSet': {'urls': url}}
 
     col_history.update_one(query, update, upsert=True)
 
@@ -43,16 +44,16 @@ def get_urls(user_id):
     return urls
 
 
-def delete_url(user_id, url):
+def delete_url(user_id, username, url):
     query = {'userId': user_id}
-    update = {'$pull': {'urls': url}}
+    update = {'$set': {'userName': username, 'lastUpdate': datetime.utcnow()}, '$pull': {'urls': url}}
 
     col_history.update_one(query, update)
 
 
 def add_seen(user_id, seen):
     query = {'userId': user_id}
-    update = {'$addToSet': {'history': {'$each': seen}}}
+    update = {'$set': {'lastUpdate': datetime.utcnow()}, '$addToSet': {'history': {'$each': seen}}}
 
     col_history.update_one(query, update)
 
@@ -106,7 +107,7 @@ def add_vip(user_id):
     col = client[DB_PROPFINDER][COL_VIP]
 
     query = {}
-    update = {'$addToSet': {'userIds': user_id}}
+    update = {'$set': {'lastUpdate': datetime.utcnow()}, '$addToSet': {'userIds': user_id}}
 
     col.update_one(query, update, upsert=True)
 
@@ -115,6 +116,19 @@ def remove_vip(user_id):
     col = client[DB_PROPFINDER][COL_VIP]
 
     query = {}
-    update = {'$pull': {'userIds': user_id}}
+    update = {'$set': {'lastUpdate': datetime.utcnow()}, '$pull': {'userIds': user_id}}
 
     col.update_one(query, update, upsert=True)
+
+
+############################################
+
+
+COL_JOB = 'jobResult'
+
+
+def register_job_result(jobName, success, message):
+    col = client[DB_PROPFINDER][COL_JOB]
+
+    col.insert_one({'name': jobName, 'success': success, 'message': message, 'datetime': datetime.utcnow()})
+

@@ -50,6 +50,20 @@ def scrap_for_unseen(urls, history):
     return total_seen, total_unseen
 
 
+def is_valid_url(url):
+    uri = urlparse(url)
+
+    if uri.hostname is None:
+        return False
+
+    parser_opt = list(filter(lambda p: uri.hostname in p.website, parsers))
+
+    if len(parser_opt) == 0:
+        return False
+
+    return True
+
+
 def extract_ads(url, text):
     uri = urlparse(url)
     parser = next(p for p in parsers if uri.hostname in p.website)

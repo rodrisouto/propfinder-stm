@@ -10,6 +10,7 @@ import requests
 
 sched = BlockingScheduler()
 MINUTES_INTERVAL = 20
+UPDATE_VIP_JOB_NAME = 'updateVip'
 
 
 @sched.scheduled_job('interval', minutes=MINUTES_INTERVAL)
@@ -17,9 +18,12 @@ def timed_job():
     # print('This job is run every three minutes.')
     try:
         update_vips()
+        db.register_job_result(UPDATE_VIP_JOB_NAME, True, None)
     except Exception as e:
         print('Error with cron')
-        print(traceback.format_exc())
+        message = traceback.format_exc()
+        print(message)
+        db.register_job_result(UPDATE_VIP_JOB_NAME, False, message)
 
 
 def update_vips():
@@ -44,7 +48,8 @@ def update_unseen(bot_id, chat_id):
     history = list(map(lambda ad: ad['id'], db.get_history(chat_id)))
 
     if len(urls) == 0:
-        send_message(bot_id, chat_id, 'There are no registered urls')
+        # Not sending messages on purpose.
+        # send_message(bot_id, chat_id, 'There are no registered urls')
         return
 
     process_unseen(bot_id, chat_id, urls, history)
