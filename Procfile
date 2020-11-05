@@ -1,2 +1,2 @@
-web: python main.py
-clock: python clock.py
+worker: python propfinder/main.py
+clock: python propfinder/clock.py
