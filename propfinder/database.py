@@ -9,9 +9,12 @@ COL_DEPLOY = 'deploy'
 
 config = configparser.ConfigParser()
 config.read('sensitive.conf')
+mongodb_username = config['mongodb.com']['username']
 mongodb_password = config['mongodb.com']['password']
+mongodb_database = config['mongodb.com']['database']
+mongodb_cluster_domain = config['mongodb.com']['cluster-domain']
 
-client = pymongo.MongoClient('mongodb+srv://rodrisouto:' + mongodb_password + '@propfinder-stm-0uhxi.mongodb.net/test?retryWrites=true&w=majority')
+client = pymongo.MongoClient('mongodb+srv://rodrisouto:' + mongodb_password + '@' + mongodb_cluster_domain + '/' + mongodb_database + '?retryWrites=true&w=majority')
 
 col_history = client[DB_PROPFINDER][COL_SEEN_BY_USER]
 
