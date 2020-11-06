@@ -1,6 +1,6 @@
 # propfinder-stm
 
-propfinder is a Telegram bot that runs on Heroku. It lets you set url queries for web apps to scrap them periodically and notify you via Telegram the publications you haven't seen yet.
+`propfinder-stm` is a Telegram bot that runs on Heroku. It lets you set url queries for web apps to scrap them periodically and notify you via Telegram the publications you haven't seen yet.
 
 Currently allowed web apps:
 * https://www.zonaprop.com.ar
