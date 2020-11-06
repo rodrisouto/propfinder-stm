@@ -1,5 +1,12 @@
 # propfinder-stm
 
+propfinder is a Telegram bot that runs on Heroku. It lets you set url queries for web apps to scrap them periodically and notify you via Telegram the publications you haven't seen yet.
+
+Currently allowed web apps:
+* https://www.zonaprop.com.ar
+* https://www.argenprop.com
+* https://inmuebles.mercadolibre.com.ar
+
 ## Usage
 Available commands:
     
@@ -11,6 +18,11 @@ Available commands:
     /vippify - Subscribe to receive updates each 20 minutes
     /unvippify - Unsubscribe
 
+
+Adding URL example
+```
+    /addurl https://www.argenprop.com/departamento-alquiler-barrio-palermo-orden-masnuevos
+```
 
 ---
 ## Monitoring
